@@ -1,0 +1,32 @@
+# Backend (.NET)
+dotnet-backend/bin/
+dotnet-backend/obj/
+dotnet-backend/*.user
+dotnet-backend/*.suo
+dotnet-backend/.vs/
+
+
+# Logs
+react-client/logs
+react-client/*.log
+react-client/npm-debug.log*
+react-client/yarn-debug.log*
+react-client/yarn-error.log*
+react-client/pnpm-debug.log*
+react-client/lerna-debug.log*
+
+react-client/node_modules
+react-client/dist
+react-client/dist-ssr
+react-client/*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
