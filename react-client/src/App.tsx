@@ -1,16 +1,19 @@
-import React from "react";
-import { SignalRProvider } from "./SignalRContext.tsx";
-import Messages from "./Messages.tsx";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import Messages from "./Messages";
+import { startSignalR } from "./store/actions/messagesActions";
 
-const App: React.FC = () => {
+export default function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(startSignalR());
+  }, [dispatch]);
+
   return (
-    <SignalRProvider>
-      <div style={{ padding: "20px" }}>
-        <h1>📡 Random üzenetek a SignalR szervertől</h1>
-        <Messages />
-      </div>
-    </SignalRProvider>
+    <div style={{ padding: "20px" }}>
+      <h1>SignalR + Redux Messages</h1>
+      <Messages />
+    </div>
   );
-};
-
-export default App;
+}

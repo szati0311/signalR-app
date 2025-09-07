@@ -2,79 +2,72 @@ using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------------------------
-// 1. CORS policy
-// ---------------------------
+// Add services
+builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ReactCors", policy =>
+    options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("*") // React dev server
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // KÖTELEZŐ SignalR WebSocket-hez
+        policy
+            .WithOrigins("http://localhost:5173") 
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
-// ---------------------------
-// 2. SignalR + BackgroundService
-// ---------------------------
-builder.Services.AddSignalR();
-builder.Services.AddHostedService<MessageService>();
+// Background service to send random messages
+builder.Services.AddHostedService<RandomMessageService>();
 
 var app = builder.Build();
 
-// ---------------------------
-// 3. Middleware sorrend kritikus
-// ---------------------------
-app.UseRouting();
-
-// A CORS middleware MINDEN hub map előtt
-app.UseCors("ReactCors");
-
-// Hub map
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapHub<ChatHub>("/chat");
-});
+app.UseCors("AllowReactApp");
+app.MapHub<ChatHub>("/chat");
 
 app.Run();
 
-// ---------------------------
-// 4. SignalR Hub
-// ---------------------------
-public class ChatHub : Hub { }
 
-// ---------------------------
-// 5. BackgroundService - random üzenetek
-// Teszteléshez: Task.Delay(TimeSpan.FromSeconds(5))
-public class MessageService : BackgroundService
+// -------------------- Hub --------------------
+
+public class ChatHub : Hub
+{
+    public Task SendMessage(string user, string message)
+    {
+        return Clients.All.SendAsync("ReceiveMessage", user, message);
+    }
+}
+
+// ---------------- Background service ----------------
+
+public class RandomMessageService : BackgroundService
 {
     private readonly IHubContext<ChatHub> _hubContext;
-    private readonly Random _rand = new Random();
-
-    private readonly string[] messages = new[]
+    private readonly string[] _randomTexts = new[]
     {
-        "Helló, itt a szerver 🚀",
-        "Ez egy random üzenet 📩",
-        "Hogy telik a napod? 🌞",
-        "Ez csak egy teszt 🔧",
-        "Random message incoming 🎲"
+        "Hello from .NET 8 🚀",
+        "SignalR is working fine!",
+        "Random message at " + DateTime.Now,
+        "How’s it going?"
     };
 
-    public MessageService(IHubContext<ChatHub> hubContext)
+    public RandomMessageService(IHubContext<ChatHub> hubContext)
     {
         _hubContext = hubContext;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var rnd = new Random();
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            var msg = messages[_rand.Next(messages.Length)];
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", "Server", msg);
+            var message = _randomTexts[rnd.Next(_randomTexts.Length)];
+            
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", "Server", message, cancellationToken: stoppingToken);
 
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); // gyors teszt
+
+            // wait 10 seconds (instead of 1 minute for faster testing)
+            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
     }
 }

@@ -1,20 +1,14 @@
 import React from "react";
-import { useSignalR } from "./SignalRContext";
+import { useSelector } from "react-redux";
 
 const Messages: React.FC = () => {
-  const { messages } = useSignalR();
+  const messages = useSelector((state: any) => state.messages);
 
   return (
-    <div style={{
-      border: "1px solid #ccc",
-      padding: "10px",
-      height: "300px",
-      overflowY: "auto",
-      background: "#f9f9f9"
-    }}>
-      {messages.map((m, i) => (
+    <div style={{ maxHeight: 250, overflowY: "auto", background: "#f5f5f5", padding: 12 }}>
+      {messages.map((message: string, i: number) => (
         <div key={i}>
-          <strong>{m.user}:</strong> {m.message}
+          <strong style={{ color: "#1a73e8" }}>{message}</strong>
         </div>
       ))}
     </div>
