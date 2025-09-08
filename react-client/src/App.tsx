@@ -7,6 +7,9 @@ export default function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
     dispatch(startSignalR());
   }, [dispatch]);
 
